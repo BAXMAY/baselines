@@ -5,6 +5,7 @@ import os
 import functools
 import collections
 import multiprocessing
+import errno
 
 def switch(condition, then_expression, else_expression):
     """Switches between two operations depending on a scalar value (int or bool).
@@ -335,7 +336,11 @@ def save_state(fname, sess=None):
     sess = sess or get_session()
     dirname = os.path.dirname(fname)
     if any(dirname):
-        os.makedirs(dirname, exist_ok=True)
+        try:
+            os.makedirs(dirname)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise  
     saver = tf.train.Saver()
     saver.save(tf.get_default_session(), fname)
 
@@ -351,7 +356,11 @@ def save_variables(save_path, variables=None, sess=None):
     save_dict = {v.name: value for v, value in zip(variables, ps)}
     dirname = os.path.dirname(save_path)
     if any(dirname):
-        os.makedirs(dirname, exist_ok=True)
+        try:
+            os.makedirs(dirname)
+        except OSError as e:
+            if e.errno != errno.EEXIST:
+                raise  
     joblib.dump(save_dict, save_path)
 
 def load_variables(load_path, variables=None, sess=None):

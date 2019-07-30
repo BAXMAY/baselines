@@ -139,7 +139,8 @@ class WarpFrame(gym.ObservationWrapper):
         If the environment uses dictionary observations, `dict_space_key` can be specified which indicates which
         observation should be warped.
         """
-        super().__init__(env)
+        #super().__init__(env)
+        gym.ObservationWrapper.__init__(self, env)
         self._width = width
         self._height = height
         self._grayscale = grayscale

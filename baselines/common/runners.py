@@ -1,8 +1,9 @@
 import numpy as np
-from abc import ABC, abstractmethod
+from future.utils import with_metaclass
+from abc import ABCMeta, abstractmethod
 
-class AbstractEnvRunner(ABC):
-    def __init__(self, *, env, model, nsteps):
+class AbstractEnvRunner(with_metaclass(ABCMeta)):
+    def __init__(self, env, model, nsteps):
         self.env = env
         self.model = model
         self.nenv = nenv = env.num_envs if hasattr(env, 'num_envs') else 1

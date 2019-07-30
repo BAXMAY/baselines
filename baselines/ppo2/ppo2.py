@@ -1,5 +1,6 @@
 import os
 import time
+import timeit
 import numpy as np
 import os.path as osp
 from baselines import logger
@@ -18,7 +19,7 @@ def constfn(val):
         return val
     return f
 
-def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2048, ent_coef=0.0, lr=3e-4,
+def learn(network, env, total_timesteps, eval_env = None, seed=None, nsteps=20, ent_coef=0.0, lr=3e-4,
             vf_coef=0.5,  max_grad_norm=0.5, gamma=0.99, lam=0.95,
             log_interval=10, nminibatches=4, noptepochs=4, cliprange=0.2,
             save_interval=0, load_path=None, model_fn=None, update_fn=None, init_fn=None, mpi_rank_weight=1, comm=None, **network_kwargs):
@@ -123,13 +124,14 @@ def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2
         init_fn()
 
     # Start total timer
-    tfirststart = time.perf_counter()
+    tfirststart = timeit.default_timer()
 
     nupdates = total_timesteps//nbatch
     for update in range(1, nupdates+1):
+        print("nupdates:" + str(update))
         assert nbatch % nminibatches == 0
         # Start timer
-        tstart = time.perf_counter()
+        tstart = timeit.default_timer()
         frac = 1.0 - (update - 1.0) / nupdates
         # Calculate the learning rate
         lrnow = lr(frac)
@@ -177,12 +179,12 @@ def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2
                     mbflatinds = flatinds[mbenvinds].ravel()
                     slices = (arr[mbflatinds] for arr in (obs, returns, masks, actions, values, neglogpacs))
                     mbstates = states[mbenvinds]
-                    mblossvals.append(model.train(lrnow, cliprangenow, *slices, mbstates))
+                    mblossvals.append(model.train(lrnow, cliprangenow, *slices, states=mbstates))
 
         # Feedforward --> get losses --> update
         lossvals = np.mean(mblossvals, axis=0)
         # End timer
-        tnow = time.perf_counter()
+        tnow = timeit.default_timer()
         # Calculate the fps (frame per second)
         fps = int(nbatch / (tnow - tstart))
 

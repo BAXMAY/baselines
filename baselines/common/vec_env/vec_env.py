@@ -1,6 +1,6 @@
 import contextlib
 import os
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 
 from baselines.common.tile_images import tile_images
 
@@ -26,13 +26,14 @@ class NotSteppingError(Exception):
         Exception.__init__(self, msg)
 
 
-class VecEnv(ABC):
+class VecEnv:
     """
     An abstract asynchronous, vectorized environment.
     Used to batch data from multiple copies of an environment, so that
     each observation becomes an batch of observations, and expected action is a batch of actions to
     be applied per-environment.
     """
+    __metaclass__ = ABCMeta
     closed = False
     viewer = None
 
@@ -145,9 +146,13 @@ class VecEnvWrapper(VecEnv):
 
     def __init__(self, venv, observation_space=None, action_space=None):
         self.venv = venv
-        super().__init__(num_envs=venv.num_envs,
-                        observation_space=observation_space or venv.observation_space,
-                        action_space=action_space or venv.action_space)
+        #super().__init__(num_envs=venv.num_envs,
+        #                observation_space=observation_space or venv.observation_space,
+        #                action_space=action_space or venv.action_space)
+
+        VecEnv.__init__(self, num_envs=venv.num_envs,
+                         observation_space=observation_space or venv.observation_space,
+                         action_space=action_space or venv.action_space)
 
     def step_async(self, actions):
         self.venv.step_async(actions)
